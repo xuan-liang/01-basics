@@ -1,15 +1,40 @@
 ---
 title: "The Great British Bake Off"
-output: html_document
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: readable
+    code_download: true
 params:
-  series: 1
+  series:
+    label: "Series:"
+    value: 1
+    input: numeric
+    min: 1
+    max: 9
+    step: 1
+  palette: 
+    label: "Wes Anderson palette:"
+    value: "GrandBudapest1"
+    input: select
+    choices: [GrandBudapest1, Darjeeling1, Darjeeling2, FantasticFox1, Royal2]
 ---
-Xuan-liang
-```{r include=FALSE}
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE, 
+  warning = FALSE,
+  message = FALSE,
+  fig.path = "xuan-figs/"
+)
 library(tidyverse)
 library(here)
 library(glue)
+library(wesanderson)
+# theme_set(theme_minimal())
 ```
+
 
 ```{r import-data, include=FALSE}
 filepath <- glue::glue("data/ratings-{params$series}.csv")
@@ -22,9 +47,15 @@ ratings <- read_csv(here::here(filepath)) %>%
 
 Series `r params$series` premiered on `r min(ratings$uk_airdate)`, and had `r n_distinct(ratings$episode)` episodes.
 
+```{r}
+ratings %>% 
+  # filter(series == 1) %>% 
+  top_n(1, viewers_7day)
+```
+
 # Ratings
 
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
+```{r my-plot}
 viewers <- ratings %>% 
   select(series:viewers_28day) %>% 
   pivot_longer(starts_with("viewers"), 
@@ -42,5 +73,6 @@ ggplot(viewers, aes(episode,
     x = "Episode", 
     y = "Viewers (millions)"
   ) +
-  expand_limits(y = 0) 
+  expand_limits(y = 0) +
+  scale_colour_manual(values = wes_palette(params$palette))
 ```
